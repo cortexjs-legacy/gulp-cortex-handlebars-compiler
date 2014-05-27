@@ -1,6 +1,6 @@
 'use strict';
 
-var module.exports = compiler;
+module.exports = compiler;
 
 var PluginError = require('gulp-util').PluginError;
 var fs = require('fs');
@@ -10,10 +10,11 @@ var compiler = require('cortex-handlebars-compiler');
 var read = require('read-cortex-json');
 var events = require('events').EventEmitter;
 var util = require('util');
+var async = require('async');
 
 
 function compiler (options){
-  return new Compile(options || {});
+  return new Compiler(options || {});
 };
 
 function Compiler (options) {
@@ -23,7 +24,7 @@ function Compiler (options) {
   this.jsons = {};
 }
 
-util.inherits(Compile, events);
+util.inherits(Compiler, events);
 
 Compiler.prototype.compile = function() {
   var self = this;
@@ -109,8 +110,8 @@ Compiler.prototype._read_json = function (path, handler, callback) {
     return callback(null, callback);
   }
 
-  var count = events.listenerCount(compile, event);
-  compile.once(event, callback);
+  var count = events.listenerCount(this, event);
+  this.once(event, callback);
 
   var event = 'json:' + path;
   var self = this;
@@ -122,18 +123,4 @@ Compiler.prototype._read_json = function (path, handler, callback) {
       self.emit(event, err, json);
     });
   }
-};
-
-
-
-var node_path = require('path');
-var compiler = require('cortex-handlebars-compiler');
-var jf = require('jsonfile');
-
-
-
-function compile (options){
-  return through.obj(function (file, enc, callback) {
-    
-  });
 };
