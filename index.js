@@ -11,6 +11,7 @@ var read = require('read-cortex-json');
 var events = require('events').EventEmitter;
 var util = require('util');
 var async = require('async');
+var jf = require('jsonfile');
 
 
 function compiler (options){
@@ -28,32 +29,44 @@ util.inherits(Compiler, events);
 
 Compiler.prototype.compile = function() {
   var self = this;
-
   return through.obj(function (file, enc, callback) {
     if(file.isStream()){
       this.emit('error', new PluginError('gulp-cortex-handlebars-compiler', 'Streaming not supported'));
       return callback();
     }
 
-    self._gather_info(function (err, pkg, shrinkWrap) {
+    self._render(file.path, String(file.contents), function (err, rendered) {
       if (err) {
         this.emit('error', err);
         return callback();
       }
 
-      var c = compiler({
-        pkg: pkg,
-        shrinkWrap: shrinkWrap,
-        ext: self.ext,
-        root: self.root
-      });
-
-      file.contents = new Buffer( c.compile(String(file.contents))() );
+      file.contents = new Buffer(rendered);
       this.push(file);
       callback();
 
     }.bind(this));
   });
+};
+
+
+Compiler.prototype._render = function(path, template, callback) {
+  this._gather_info(function (err, pkg, shrinkWrap) {
+    if (err) {
+      return callback(err);
+    }
+
+    var c = compiler({
+      pkg: pkg,
+      shrinkWrap: shrinkWrap,
+      ext: this.ext,
+      root: this.root
+    });
+
+    var compiled = c.compile(template);
+    var rendered = compiled();
+    callback(null, rendered);
+  }.bind(this));
 };
 
 
@@ -107,13 +120,13 @@ Compiler.prototype._read_shrinkwrap = function(callback) {
 Compiler.prototype._read_json = function (path, handler, callback) {
   var json = this.jsons[path];
   if (json) {
-    return callback(null, callback);
+    return callback(null, json);
   }
 
+  var event = 'json:' + path;
   var count = events.listenerCount(this, event);
   this.once(event, callback);
-
-  var event = 'json:' + path;
+  
   var self = this;
   if (count === 0) {
     handler(path, function (err, json) {
