@@ -21,7 +21,15 @@ function compiler (options){
 function Compiler (options) {
   this.cwd = options.cwd || process.cwd();
   this.ext = options.ext || '.js';
-  this.root = options.root || '../../../';
+
+  // ```
+  // root/
+  //     |-- <name>
+  //              |-- <version>
+  //                          |-- template
+  //                                     |-- index.html
+  // ```
+  this.root = options.root || '../../';
   this.jsons = {};
 }
 
@@ -56,11 +64,15 @@ Compiler.prototype._render = function(path, template, callback) {
       return callback(err);
     }
 
+    var dirname = node_path.dirname(path);
+    var relative = node_path.relative(dirname, this.cwd);
+    var root = node_path.join(this.root, relative);
+
     var c = compiler({
       pkg: pkg,
       shrinkWrap: shrinkWrap,
       ext: this.ext,
-      root: this.root
+      root: root
     });
 
     var compiled = c.compile(template);
