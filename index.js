@@ -20,16 +20,8 @@ function compiler (options){
 
 function Compiler (options) {
   this.cwd = options.cwd || process.cwd();
-  this.ext = options.ext || '.js';
-
-  // ```
-  // root/
-  //     |-- <name>
-  //              |-- <version>
-  //                          |-- template
-  //                                     |-- index.html
-  // ```
-  this.root = options.root || '../../';
+  this.js_ext = options.js_ext || '.js';
+  this.href_root = options.href_root || '';
   this.jsons = {};
 }
 
@@ -64,20 +56,24 @@ Compiler.prototype._render = function(path, template, callback) {
       return callback(err);
     }
 
-    var dirname = node_path.dirname(path);
-    var relative = node_path.relative(dirname, this.cwd);
-    var root = node_path.join(this.root, relative);
+    var compiled;
+    try {
+      compiled = compiler({
+        pkg: pkg,
+        shrinkWrap: shrinkWrap,
+        cwd: this.cwd,
+        path: path,
+        ext: this.js_ext,
+        href_root: this.href_root
+      }).compile(template);
+      
+    } catch(e) {
+      return callback(e);
+    }
 
-    var c = compiler({
-      pkg: pkg,
-      shrinkWrap: shrinkWrap,
-      ext: this.ext,
-      root: root
-    });
-
-    var compiled = c.compile(template);
     var rendered = compiled();
     callback(null, rendered);
+
   }.bind(this));
 };
 
