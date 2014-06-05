@@ -21,6 +21,7 @@ function compiler (options){
 function Compiler (options) {
   this.cwd = options.cwd || process.cwd();
   this.js_ext = options.js_ext || '.js';
+  this.css_ext = options.css_ext || '.css';
   this.href_root = options.href_root || '';
   this.jsons = {};
 }
@@ -63,7 +64,8 @@ Compiler.prototype._render = function(path, template, callback) {
         shrinkWrap: shrinkWrap,
         cwd: this.cwd,
         path: path,
-        ext: this.js_ext,
+        js_ext: this.js_ext,
+        css_ext: this.css_ext,
         href_root: this.href_root
       }).compile(template);
       
