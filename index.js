@@ -7,7 +7,7 @@ var fs = require('fs');
 var through = require('through2');
 var node_path = require('path');
 var compiler = require('cortex-handlebars-compiler');
-var read = require('read-cortex-json');
+var cortex_json = require('read-cortex-json');
 var events = require('events').EventEmitter;
 var util = require('util');
 var async = require('async');
@@ -112,7 +112,7 @@ Compiler.prototype._gather_info = function(callback) {
 
 Compiler.prototype._read_pkg = function (callback) {
   this._read_json(this.cwd, function (path, done) {
-    read.get_original_package(path, done);
+    cortex_json.read(path, done);
   }, callback);
 };
 
