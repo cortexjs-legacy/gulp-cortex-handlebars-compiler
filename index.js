@@ -84,6 +84,10 @@ Compiler.prototype._gather_info = function(callback) {
 
   var self = this;
   this._read_pkg(function (err, pkg) {
+    if (err) {
+      return callback(err);
+    }
+
     self._read_tree(pkg, function (err, tree) {
       if (err) {
         return callback(err);
@@ -104,10 +108,10 @@ Compiler.prototype._read_pkg = function (callback) {
 };
 
 
-Compiler.prototype._read_tree = function(callback) {
+Compiler.prototype._read_tree = function(pkg, callback) {
   neuron_tree(pkg, {
     cwd: this.cwd,
-    built_root: built_root,
+    built_root: node_path.join(this.cwd, 'neurons'),
     dependencyKeys: ['dependencies', 'asyncDependencies']
   }, callback);
 };
