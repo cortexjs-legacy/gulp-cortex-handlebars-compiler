@@ -12,6 +12,7 @@ var events = require('events').EventEmitter;
 var util = require('util');
 var async = require('async');
 var jf = require('jsonfile');
+var neuron_tree = require('neuron-tree');
 
 
 function compiler (options){
@@ -20,8 +21,6 @@ function compiler (options){
 
 function Compiler (options) {
   this.cwd = options.cwd || process.cwd();
-  this.js_ext = options.js_ext || '.js';
-  this.css_ext = options.css_ext || '.css';
   this.href_root = options.href_root || '';
   this.jsons = {};
 }
@@ -52,7 +51,7 @@ Compiler.prototype.compile = function() {
 
 
 Compiler.prototype._render = function(path, template, callback) {
-  this._gather_info(function (err, pkg, shrinkWrap) {
+  this._gather_info(function (err, pkg, tree) {
     if (err) {
       return callback(err);
     }
@@ -61,11 +60,9 @@ Compiler.prototype._render = function(path, template, callback) {
     try {
       compiled = compiler({
         pkg: pkg,
-        shrinkWrap: shrinkWrap,
+        tree: tree,
         cwd: this.cwd,
         path: path,
-        js_ext: this.js_ext,
-        css_ext: this.css_ext,
         href_root: this.href_root
       }).compile(template);
       
@@ -81,31 +78,21 @@ Compiler.prototype._render = function(path, template, callback) {
 
 
 Compiler.prototype._gather_info = function(callback) {
-  var pkg;
-  var shrinkWrap;
-  var self = this; 
+  if (this.pkg || this.tree) {
+    return callback(null, this.pkg, this.tree);
+  }
 
-  async.parallel([
-    function (done) {
-      self._read_pkg(function (err, json) {
-        pkg = json;
-        done(err);
-      });
-    },
+  var self = this;
+  this._read_pkg(function (err, pkg) {
+    self._read_tree(pkg, function (err, tree) {
+      if (err) {
+        return callback(err);
+      }
 
-    function (done) {
-      self._read_shrinkwrap(function (err, json) {
-        shrinkWrap = json;
-        done(err);
-      });
-    }
-
-  ], function (err) {
-    if (err) {
-      return callback(err);
-    }
-
-    callback(null, pkg, shrinkWrap);
+      self.pkg = pkg;
+      self.tree = tree;
+      callback(null, self.pkg, self.tree);
+    });
   });
 };
 
@@ -117,11 +104,11 @@ Compiler.prototype._read_pkg = function (callback) {
 };
 
 
-Compiler.prototype._read_shrinkwrap = function(callback) {
-  var shrinkwrap_json = node_path.join(this.cwd, 'cortex-shrinkwrap.json');
-
-  this._read_json(shrinkwrap_json, function (path, done) {
-    jf.readFile(path, done);
+Compiler.prototype._read_tree = function(callback) {
+  neuron_tree(pkg, {
+    cwd: this.cwd,
+    built_root: built_root,
+    dependencyKeys: ['dependencies', 'asyncDependencies']
   }, callback);
 };
 
