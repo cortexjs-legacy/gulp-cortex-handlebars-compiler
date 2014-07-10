@@ -51,7 +51,7 @@ Compiler.prototype.compile = function() {
 
 
 Compiler.prototype._render = function(path, template, callback) {
-  this._gather_info(function (err, pkg, tree) {
+  this._gather_info(function (err, pkg, tree, shrinkwrap) {
     if (err) {
       return callback(err);
     }
@@ -62,6 +62,7 @@ Compiler.prototype._render = function(path, template, callback) {
         pkg: pkg,
         tree: tree,
         cwd: this.cwd,
+        shrinkwrap: shrinkwrap,
         path: path,
         href_root: this.href_root
       }).compile(template);
@@ -78,8 +79,8 @@ Compiler.prototype._render = function(path, template, callback) {
 
 
 Compiler.prototype._gather_info = function(callback) {
-  if (this.pkg || this.tree) {
-    return callback(null, this.pkg, this.tree);
+  if (this.pkg && this.tree && this.shrinkwrap) {
+    return callback(null, this.pkg, this.tree, this.shrinkwrap);
   }
 
   var self = this;
@@ -88,14 +89,15 @@ Compiler.prototype._gather_info = function(callback) {
       return callback(err);
     }
 
-    self._read_tree(pkg, function (err, tree) {
+    self._read_tree(pkg, function (err, tree, shrinkwrap) {
       if (err) {
         return callback(err);
       }
 
       self.pkg = pkg;
       self.tree = tree;
-      callback(null, self.pkg, self.tree);
+      self.shrinkwrap = shrinkwrap;
+      callback(null, self.pkg, tree, shrinkwrap);
     });
   });
 };
