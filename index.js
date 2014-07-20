@@ -12,7 +12,7 @@ var events = require('events').EventEmitter;
 var util = require('util');
 var async = require('async');
 var jf = require('jsonfile');
-var neuron_tree = require('neuron-tree');
+var ngraph = require('neuron-graph');
 
 
 function compiler (options){
@@ -51,7 +51,7 @@ Compiler.prototype.compile = function() {
 
 
 Compiler.prototype._render = function(path, template, callback) {
-  this._gather_info(function (err, pkg, tree, shrinkwrap) {
+  this._gather_info(function (err, pkg, graph, shrinkwrap) {
     if (err) {
       return callback(err);
     }
@@ -60,7 +60,7 @@ Compiler.prototype._render = function(path, template, callback) {
     try {
       compiled = compiler({
         pkg: pkg,
-        tree: tree,
+        graph: graph,
         cwd: this.cwd,
         shrinkwrap: shrinkwrap,
         path: path,
@@ -79,8 +79,8 @@ Compiler.prototype._render = function(path, template, callback) {
 
 
 Compiler.prototype._gather_info = function(callback) {
-  if (this.pkg && this.tree && this.shrinkwrap) {
-    return callback(null, this.pkg, this.tree, this.shrinkwrap);
+  if (this.pkg && this.graph && this.shrinkwrap) {
+    return callback(null, this.pkg, this.graph, this.shrinkwrap);
   }
 
   var self = this;
@@ -89,15 +89,15 @@ Compiler.prototype._gather_info = function(callback) {
       return callback(err);
     }
 
-    self._read_tree(pkg, function (err, tree, shrinkwrap) {
+    self._read_graph(pkg, function (err, graph, shrinkwrap) {
       if (err) {
         return callback(err);
       }
 
       self.pkg = pkg;
-      self.tree = tree;
+      self.graph = graph;
       self.shrinkwrap = shrinkwrap;
-      callback(null, self.pkg, tree, shrinkwrap);
+      callback(null, self.pkg, graph, shrinkwrap);
     });
   });
 };
@@ -110,8 +110,8 @@ Compiler.prototype._read_pkg = function (callback) {
 };
 
 
-Compiler.prototype._read_tree = function(pkg, callback) {
-  neuron_tree(pkg, {
+Compiler.prototype._read_graph = function(pkg, callback) {
+  ngraph(pkg, {
     cwd: this.cwd,
     built_root: node_path.join(this.cwd, 'neurons'),
     dependencyKeys: ['dependencies', 'asyncDependencies']
