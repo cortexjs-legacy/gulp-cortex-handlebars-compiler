@@ -56,6 +56,8 @@ Compiler.prototype._render = function(path, template, callback) {
       return callback(err);
     }
 
+    this._improve_graph(graph, pkg);
+
     var compiled;
     try {
       compiled = compiler({
@@ -116,6 +118,12 @@ Compiler.prototype._read_graph = function(pkg, callback) {
     built_root: node_path.join(this.cwd, 'neurons'),
     dependencyKeys: ['dependencies', 'asyncDependencies']
   }, callback);
+};
+
+
+Compiler.prototype._improve_graph = function(graph, pkg) {
+  var _ = graph._;
+  _[pkg.name + '@*'] = _[pkg.name + '@' + pkg.version];
 };
 
 
