@@ -1,6 +1,6 @@
 {
   "name": "gulp-cortex-handlebars-compiler",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Gulp task builder for cortex-handlebars-compiler",
   "main": "index.js",
   "scripts": {
@@ -18,7 +18,7 @@
     "neuron"
   ],
   "engines": {
-    "node": ">=0.11.0"
+    "node": ">=0.10.0"
   },
   "author": "kael",
   "license": "MIT",
