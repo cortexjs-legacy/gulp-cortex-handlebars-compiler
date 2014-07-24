@@ -14,7 +14,6 @@ var async = require('async');
 var jf = require('jsonfile');
 var ngraph = require('neuron-graph');
 
-
 function compiler (options){
   return new Compiler(options || {});
 };
@@ -81,8 +80,21 @@ Compiler.prototype._render = function(path, template, callback) {
 
 
 Compiler.prototype._gather_info = function(callback) {
+  function cb (pkg, graph, shrinkwrap) {
+    var version = process.env.NEURON_VERSION;
+    if (!shrinkwrap.engines && version) {
+      shrinkwrap.engines = {
+        'neuron': {
+          'from': 'neuron@' + version,
+          'version': version
+        }
+      };
+    }
+    callback(null, pkg, graph, shrinkwrap);
+  }
+
   if (this.pkg && this.graph && this.shrinkwrap) {
-    return callback(null, this.pkg, this.graph, this.shrinkwrap);
+    return cb(this.pkg, this.graph, this.shrinkwrap);
   }
 
   var self = this;
@@ -99,7 +111,7 @@ Compiler.prototype._gather_info = function(callback) {
       self.pkg = pkg;
       self.graph = graph;
       self.shrinkwrap = shrinkwrap;
-      callback(null, self.pkg, graph, shrinkwrap);
+      cb(self.pkg, graph, shrinkwrap);
     });
   });
 };
