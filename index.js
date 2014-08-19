@@ -13,6 +13,7 @@ var util = require('util');
 var async = require('async');
 var jf = require('jsonfile');
 var ngraph = require('neuron-graph');
+var semver = require('semver-extra');
 
 function compiler (options){
   return new Compiler(options || {});
@@ -101,6 +102,14 @@ Compiler.prototype._gather_info = function(callback) {
   this._read_pkg(function (err, pkg) {
     if (err) {
       return callback(err);
+    }
+
+    var pr = process.env.CORTEX_BUILD_PRERELEASE;
+    if (pr) {
+      var s = semver.parse(pkg.version);
+      s.prerelease.length = 0;
+      s.prerelease.push(pr);
+      pkg.version = s.format();
     }
 
     self._read_graph(pkg, function (err, graph, shrinkwrap) {
