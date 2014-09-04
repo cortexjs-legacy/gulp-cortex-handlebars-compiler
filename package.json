@@ -1,6 +1,6 @@
 {
   "name": "gulp-cortex-handlebars-compiler",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Gulp task builder for cortex-handlebars-compiler",
   "main": "index.js",
   "scripts": {
@@ -34,7 +34,7 @@
     "cortex-handlebars-compiler": "^1.0.0",
     "gulp-util": "^2.2.14",
     "jsonfile": "^1.1.1",
-    "neuron-graph": "^0.2.0",
+    "neuron-graph": "^1.0.1",
     "read-cortex-json": "^2.0.0",
     "semver-extra": "^1.0.5",
     "through2": "^0.4.2"
