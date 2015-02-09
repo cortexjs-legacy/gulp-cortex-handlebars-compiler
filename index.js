@@ -6,7 +6,7 @@ var PluginError = require('gulp-util').PluginError;
 var fs = require('fs');
 var through = require('through2');
 var node_path = require('path');
-var compiler = require('cortex-handlebars-compiler');
+var handlebars_compiler = require('cortex-handlebars-compiler');
 var cortex_json = require('read-cortex-json');
 var events = require('events').EventEmitter;
 var util = require('util');
@@ -51,36 +51,38 @@ Compiler.prototype.compile = function() {
 
 
 Compiler.prototype._render = function(path, template, callback) {
-  this._gather_info(function (err, pkg, graph, shrinkwrap) {
+  var self = this;
+  this._gather_info(template, function (err, pkg, graph, shrinkwrap) {
     if (err) {
       return callback(err);
     }
 
-    this._improve_graph(graph, pkg);
+    self._read_facades(template, function(err, facades){
+      if(err){
+        return callback(err);
+      }
+      var compiled;
+      try {
+        self._improve_graph(graph, pkg, facades);
 
-    var compiled;
-    try {
-      compiled = compiler({
-        pkg: pkg,
-        graph: graph,
-        cwd: this.cwd,
-        shrinkwrap: shrinkwrap,
-        path: path,
-        href_root: this.href_root
-      }).compile(template);
-      
-    } catch(e) {
-      return callback(e);
-    }
-
-    var rendered = compiled();
-    callback(null, rendered);
-
+        compiled = handlebars_compiler({
+          pkg: pkg,
+          graph: graph,
+          cwd: self.cwd,
+          shrinkwrap: shrinkwrap,
+          path: path,
+          href_root: self.href_root
+        }).compile(template);
+      } catch(e) {
+        return callback(e);
+      }
+      var rendered = compiled();
+      callback(null, rendered);
+    });
   }.bind(this));
 };
 
-
-Compiler.prototype._gather_info = function(callback) {
+Compiler.prototype._gather_info = function(template, callback) {
   function cb (pkg, graph, shrinkwrap) {
     var version = process.env.NEURON_VERSION;
     if (!shrinkwrap.engines && version) {
@@ -120,11 +122,27 @@ Compiler.prototype._gather_info = function(callback) {
       self.pkg = pkg;
       self.graph = graph;
       self.shrinkwrap = shrinkwrap;
+
       cb(self.pkg, graph, shrinkwrap);
     });
   });
 };
 
+Compiler.prototype._read_facades = function(content, callback){
+  var regexp_comments = /<!--[\s\S]*?-->/g;
+  var regexp = /\{\{\{facade\s\'([\w\@\.\d-_\/]+)\'\}\}\}/g
+  var match_comment,m;
+  var facades = [];
+
+  while(match_comment = regexp_comments.exec(content)){
+    content = content.replace(regexp_comments,'');
+  }
+
+  while(m = regexp.exec(content)){
+    facades.push(m[1]);
+  }
+  callback(null, facades);
+}
 
 Compiler.prototype._read_pkg = function (callback) {
   this._read_json(this.cwd, function (path, done) {
@@ -142,10 +160,48 @@ Compiler.prototype._read_graph = function(pkg, callback) {
 };
 
 
-Compiler.prototype._improve_graph = function(graph, pkg) {
+Compiler.prototype._improve_graph = function(graph, pkg, facades) {
+  var self = this;
   var _ = graph._;
+  var main_id = _[pkg.name + '@' + pkg.version];
   _[pkg.name + '@*'] = _[pkg.name + '@' + pkg.version];
+
+  facades.forEach(function(facade){
+    if(self._parse_module(facade).name == pkg.name){
+      return;
+    }
+    facade = facade.split("@").length > 1 ? facade : (facade + "@*");
+    _[facade] = self._find_module_id(graph[main_id][1], facade);
+  });
 };
+
+Compiler.prototype._parse_module = function(module){
+  var module_id = module.split("/")[0];
+  var module_path = module.split("/")[1];
+  var module_name = module_id.split("@")[0];
+  var module_version = module_id.split("@")[1] || "*";
+  return {
+    name: module_name,
+    version: module_version,
+    path: module_path
+  };
+}
+
+Compiler.prototype._find_module_id = function(subgraph, facade){
+  var facade_mod = this._parse_module(facade);
+
+  for(var key in subgraph){
+    var current_mod = this._parse_module(key);
+    if(current_mod.name !== facade_mod.name){
+      continue;
+    }
+
+    if(facade_mod.version == "*" || semver.satisfies(facade_mod.version, current_mod.version)){
+      return subgraph[key];
+    }
+  }
+  throw util.format("ERR: Module %s not found, please install it first", facade);
+}
 
 
 // Queue the read process
@@ -158,7 +214,7 @@ Compiler.prototype._read_json = function (path, handler, callback) {
   var event = 'json:' + path;
   var count = events.listenerCount(this, event);
   this.once(event, callback);
-  
+
   var self = this;
   if (count === 0) {
     handler(path, function (err, json) {
@@ -169,3 +225,4 @@ Compiler.prototype._read_json = function (path, handler, callback) {
     });
   }
 };
+
