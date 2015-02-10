@@ -1,6 +1,6 @@
 {
   "name": "gulp-cortex-handlebars-compiler",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Gulp task builder for cortex-handlebars-compiler",
   "main": "index.js",
   "scripts": {

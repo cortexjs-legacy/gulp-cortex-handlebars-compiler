@@ -130,7 +130,7 @@ Compiler.prototype._gather_info = function(template, callback) {
 
 Compiler.prototype._read_facades = function(content, callback){
   var regexp_comments = /<!--[\s\S]*?-->/g;
-  var regexp = /\{\{\{facade\s\'([\w\@\.\d-_\/]+)\'\}\}\}/g
+  var regexp = /\{\{\{facade\s([\'\"])([\w\@\.\d-_\/]+)\1\s*\}\}\}/g
   var match_comment,m;
   var facades = [];
 
@@ -139,7 +139,7 @@ Compiler.prototype._read_facades = function(content, callback){
   }
 
   while(m = regexp.exec(content)){
-    facades.push(m[1]);
+    facades.push(m[2]);
   }
   callback(null, facades);
 }
