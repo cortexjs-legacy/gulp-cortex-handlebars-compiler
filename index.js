@@ -22,7 +22,10 @@ function compiler (options){
 function Compiler (options) {
   this.cwd = options.cwd || process.cwd();
   this.href_root = options.href_root || '';
+  this.html_root = options.html_root || '';
+  this.mod_root = options.mod_root || '';
   this.jsons = {};
+  this.hosts = options.hosts;
 }
 
 util.inherits(Compiler, events);
@@ -66,11 +69,14 @@ Compiler.prototype._render = function(path, template, callback) {
         self._improve_graph(graph, pkg, facades);
 
         compiled = handlebars_compiler({
+          hosts: self.hosts,
           pkg: pkg,
           graph: graph,
           cwd: self.cwd,
           shrinkwrap: shrinkwrap,
           path: path,
+          mod_root: self.mod_root,
+          html_root: self.html_root,
           href_root: self.href_root
         }).compile(template);
       } catch(e) {
