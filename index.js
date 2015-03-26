@@ -113,7 +113,7 @@ Compiler.prototype._gather_info = function(template, callback) {
     }
 
     var pr = process.env.CORTEX_BUILD_PRERELEASE;
-    if (pr) {
+    if (pr && pr !== "product") {
       var s = semver.parse(pkg.version);
       s.prerelease.length = 0;
       s.prerelease.push(pr);
