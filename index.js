@@ -24,7 +24,7 @@ function Compiler (options) {
   this.href_root = options.href_root || '';
   this.html_root = options.html_root || '';
   this.mod_root = options.mod_root || '';
-  this.template_dir = node_path.join(this.cwd, options.template_dir || "");
+  this.template_dir = options.template_dir ? node_path.join(this.cwd, options.template_dir) : null;
   this.jsons = {};
   this.hosts = options.hosts;
 }
