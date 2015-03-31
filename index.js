@@ -24,6 +24,7 @@ function Compiler (options) {
   this.href_root = options.href_root || '';
   this.html_root = options.html_root || '';
   this.mod_root = options.mod_root || '';
+  this.template_dir = node_path.join(this.cwd, options.template_dir || "");
   this.jsons = {};
   this.hosts = options.hosts;
 }
@@ -75,6 +76,7 @@ Compiler.prototype._render = function(path, template, callback) {
           cwd: self.cwd,
           shrinkwrap: shrinkwrap,
           path: path,
+          template_dir: self.template_dir,
           mod_root: self.mod_root,
           html_root: self.html_root,
           href_root: self.href_root
