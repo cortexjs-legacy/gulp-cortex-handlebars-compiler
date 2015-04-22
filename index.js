@@ -20,9 +20,12 @@ function compiler (options){
 };
 
 function Compiler (options) {
+  if(options.html_root){
+    console.error("`html_root` is not supported anymore, see: https://github.com/cortexjs/gulp-cortex-handlebars-compiler/issues/3");
+    process.exit(1);
+  }
   this.cwd = options.cwd || process.cwd();
   this.href_root = options.href_root || '';
-  this.html_root = options.html_root || '';
   this.mod_root = options.mod_root || '';
   this.hash_host = options.hash_host;
   this.template_dir = options.template_dir ? node_path.join(this.cwd, options.template_dir) : null;
@@ -54,7 +57,6 @@ Compiler.prototype.compile = function() {
   });
 };
 
-
 Compiler.prototype._render = function(path, template, callback) {
   var self = this;
   this._gather_info(template, function (err, pkg, graph, shrinkwrap) {
@@ -74,12 +76,12 @@ Compiler.prototype._render = function(path, template, callback) {
           hosts: self.hosts,
           pkg: pkg,
           graph: graph,
+          facades: facades,
           cwd: self.cwd,
           shrinkwrap: shrinkwrap,
           path: path,
           template_dir: self.template_dir,
           mod_root: self.mod_root,
-          html_root: self.html_root,
           href_root: self.href_root,
           hash_host: self.hash_host
         }).compile(template);
@@ -95,6 +97,7 @@ Compiler.prototype._render = function(path, template, callback) {
 Compiler.prototype._gather_info = function(template, callback) {
   function cb (pkg, graph, shrinkwrap) {
     var version = process.env.NEURON_VERSION;
+    console.log("neuron version")
     if (!shrinkwrap.engines && version) {
       shrinkwrap.engines = {
         'neuron': {
@@ -102,6 +105,8 @@ Compiler.prototype._gather_info = function(template, callback) {
           'version': version
         }
       };
+    }else if(!version){
+      callback("NEURON_VERSION should be exported");
     }
     callback(null, pkg, graph, shrinkwrap);
   }
