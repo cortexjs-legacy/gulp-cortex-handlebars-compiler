@@ -97,7 +97,6 @@ Compiler.prototype._render = function(path, template, callback) {
 Compiler.prototype._gather_info = function(template, callback) {
   function cb (pkg, graph, shrinkwrap) {
     var version = process.env.NEURON_VERSION;
-    console.log("neuron version")
     if (!shrinkwrap.engines && version) {
       shrinkwrap.engines = {
         'neuron': {
