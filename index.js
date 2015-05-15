@@ -88,7 +88,13 @@ Compiler.prototype._render = function(path, template, callback) {
       } catch(e) {
         return callback(e);
       }
-      var rendered = compiled();
+
+      var ENV = process.env.ENV;
+      var rendered = compiled({
+        __DEV__:  !ENV || ENV == 'dev',
+        __TEST__: ENV && /alpha|beta/.test(ENV),
+        __PRODUCT___: ENV && /product|prelease/.test(ENV)
+      });
       callback(null, rendered);
     });
   }.bind(this));
