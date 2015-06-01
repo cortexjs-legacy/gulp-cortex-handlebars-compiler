@@ -92,7 +92,7 @@ Compiler.prototype._render = function(path, template, callback) {
       var ENV = process.env.ENV;
       var rendered = compiled({
         __DEV__:  !ENV || ENV == 'dev',
-        __ENV_BETA__:  ENV == 'alpha',
+        __ENV_ALPHA__:  ENV == 'alpha',
         __ENV_BETA__:  ENV == 'beta',
         __ENV_PRODUCT__:  ENV == 'product',
         __ENV_PRELEASE__:  ENV == 'prelease',
