@@ -92,6 +92,10 @@ Compiler.prototype._render = function(path, template, callback) {
       var ENV = process.env.ENV;
       var rendered = compiled({
         __DEV__:  !ENV || ENV == 'dev',
+        __ENV_BETA__:  ENV == 'alpha',
+        __ENV_BETA__:  ENV == 'beta',
+        __ENV_PRODUCT__:  ENV == 'product',
+        __ENV_PRELEASE__:  ENV == 'prelease',
         __TEST__: ENV && /alpha|beta/.test(ENV),
         __PRODUCT___: ENV && /product|prelease/.test(ENV)
       });
@@ -174,7 +178,7 @@ Compiler.prototype._read_pkg = function (callback) {
 Compiler.prototype._read_graph = function(pkg, callback) {
   ngraph(pkg, {
     cwd: this.cwd,
-    built_root: node_path.join(this.cwd, 'neurons'),
+    built_root: node_path.join(this.cwd, process.env.CORTEX_DEST || 'neurons'),
     dependencyKeys: ['dependencies', 'asyncDependencies']
   }, callback);
 };
