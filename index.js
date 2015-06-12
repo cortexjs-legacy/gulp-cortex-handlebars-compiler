@@ -14,6 +14,7 @@ var async = require('async');
 var jf = require('jsonfile');
 var ngraph = require('neuron-graph');
 var semver = require('semver-extra');
+var _ = require('underscore');
 
 function compiler (options){
   return new Compiler(options || {});
@@ -31,6 +32,7 @@ function Compiler (options) {
   this.template_dir = options.template_dir ? node_path.join(this.cwd, options.template_dir) : null;
   this.jsons = {};
   this.hosts = options.hosts;
+  this.data = options.data;
 }
 
 util.inherits(Compiler, events);
@@ -90,7 +92,7 @@ Compiler.prototype._render = function(path, template, callback) {
       }
 
       var ENV = process.env.ENV;
-      var rendered = compiled({
+      var data = _.extend(self.data, {
         __DEV__:  !ENV || ENV == 'dev',
         __ENV_ALPHA__:  ENV == 'alpha',
         __ENV_BETA__:  ENV == 'beta',
@@ -99,6 +101,7 @@ Compiler.prototype._render = function(path, template, callback) {
         __TEST__: ENV && /alpha|beta/.test(ENV),
         __PRODUCT___: ENV && /product|prelease/.test(ENV)
       });
+      var rendered = compiled(data);
       callback(null, rendered);
     });
   }.bind(this));
