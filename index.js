@@ -110,17 +110,31 @@ Compiler.prototype._render = function(path, template, callback) {
 Compiler.prototype._gather_info = function(template, callback) {
   function cb (pkg, graph, shrinkwrap) {
     var version = process.env.NEURON_VERSION;
-    if (!shrinkwrap.engines && version) {
-      shrinkwrap.engines = {
-        'neuron': {
-          'from': 'neuron@' + version,
-          'version': version
-        }
-      };
-    }else if(!version){
-      callback("NEURON_VERSION should be exported");
+    var exec = require('child_process').exec;
+
+    function makeResult(v){
+      if (!shrinkwrap.engines && v) {
+        shrinkwrap.engines = {
+          'neuron': {
+            'from': 'neuron@' + v,
+            'version': v
+          }
+        };
+      }else if(!v){
+        callback("NEURON_VERSION should be exported");
+      }
+      callback(null, pkg, graph, shrinkwrap);
     }
-    callback(null, pkg, graph, shrinkwrap);
+
+    if(!version){
+      exec('cortex neuron-version', function(err, v){
+        if(err){return callback(err)}
+        var version = process.env.NEURON_VERSION = v.trim();
+        makeResult(version);
+      });
+    }else{
+        makeResult(version);
+    }
   }
 
   if (this.pkg && this.graph && this.shrinkwrap) {
